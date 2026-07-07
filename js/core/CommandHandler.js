@@ -17,6 +17,7 @@ const PROJECTS = window.Term.PROJECTS;
 const SKILL_GROUPS = window.Term.SKILL_GROUPS;
 const ABOUT_LINES = window.Term.ABOUT_LINES;
 const CONTACTS = window.Term.CONTACTS;
+const ELSEWHERE = window.Term.ELSEWHERE;
 
 const L = (text, cls = 'out') => ({ text, cls });
 
@@ -94,6 +95,11 @@ class CommandHandler {
         summary: 'print contact channels',
         usage: 'contacts',
         handler: () => this.cmdContacts(),
+      },
+      elsewhere: {
+        summary: 'other places online',
+        usage: 'elsewhere',
+        handler: () => this.cmdElsewhere(),
       },
       skills: {
         summary: 'print technical proficiency table',
@@ -201,6 +207,16 @@ class CommandHandler {
     const lines = [L('CONTACTS', 'dim'), L('')];
     CONTACTS.forEach((c) => {
       lines.push(L(`${c.label.padEnd(10)}${c.value}`));
+    });
+    return { action: 'print', lines };
+  }
+
+  cmdElsewhere() {
+    const lines = [L('ELSEWHERE', 'dim'), L('')];
+    ELSEWHERE.forEach((c) => {
+      lines.push(L(`${c.label}  ·  ${c.desc}`, 'accent'));
+      lines.push(L(`  ${c.value}`, 'dim'));
+      lines.push(L(''));
     });
     return { action: 'print', lines };
   }
