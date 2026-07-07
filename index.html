@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>vitharr@tech</title>
+<meta name="description" content="vitharr — DevOps / Linux / Backend. Interactive terminal portfolio.">
+
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="scanline-guard" aria-hidden="true"></div>
+
+<main id="terminal" class="terminal" role="application" aria-label="Interactive terminal portfolio">
+
+  <header class="terminal__chrome">
+    <div class="terminal__chrome-dots" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="terminal__chrome-title">vitharr@tech: ~</div>
+    <div class="terminal__chrome-status" id="clockStatus">--:--:--</div>
+  </header>
+
+  <section id="output" class="terminal__output" aria-live="polite"></section>
+
+  <form id="inputLine" class="terminal__input-line" autocomplete="off">
+    <label for="commandInput" class="terminal__prompt" id="promptLabel">vitharr@tech:~#</label>
+    <div class="terminal__inputwrap">
+      <span id="inputMirror" class="terminal__mirror"></span><span class="terminal__cursor" id="cursor"></span>
+      <input
+        id="commandInput"
+        class="terminal__input"
+        type="text"
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        aria-label="Command input"
+        disabled
+      >
+    </div>
+  </form>
+
+</main>
+
+<footer class="terminal__footer">
+  <span>type <code>help</code> to begin</span>
+</footer>
+
+<script src="js/data/projects.js"></script>
+<script src="js/data/skills.js"></script>
+<script src="js/data/about.js"></script>
+<script src="js/core/CommandHandler.js"></script>
+<script src="js/core/TerminalCore.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

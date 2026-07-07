@@ -1,0 +1,340 @@
+/* ==========================================================================
+   vitharr@tech — Rock & Steel design system
+   Spartan, monochrome-first, one restrained accent. No noise, no chrome.
+   ========================================================================== */
+
+:root {
+  /* -- surface -- */
+  --bg-0: #121417;          /* void behind everything */
+  --bg-1: #16181c;          /* terminal body */
+  --bg-2: #1c1f24;          /* raised chrome / input line */
+  --border: #2a2e34;
+
+  /* -- ink -- */
+  --ink-0: #e6e8eb;         /* primary output text — cold steel white */
+  --ink-1: #9aa1ab;         /* secondary / muted text */
+  --ink-2: #5b6169;         /* tertiary / timestamps / disabled */
+
+  /* -- accent: deep steel blue, used sparingly -- */
+  --accent: #5487a3;
+  --accent-dim: #3d6377;
+
+  /* -- signal colors: desaturated, never bright -- */
+  --ok: #6f8f5c;            /* muted moss green */
+  --warn: #a68a52;          /* muted ochre */
+  --err: #a15b52;           /* muted brick */
+
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
+
+  --radius: 3px;
+  --line: 1.55;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg-0);
+}
+
+body {
+  font-family: var(--font-mono);
+  color: var(--ink-0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 4vh 4vw;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* faint fixed-texture on the void, never on the terminal body itself */
+.scanline-guard {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+  mix-blend-mode: overlay;
+}
+
+/* ==========================================================================
+   Terminal shell
+   ========================================================================== */
+
+.terminal {
+  width: 100%;
+  max-width: 860px;
+  height: min(78vh, 680px);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.03) inset,
+    0 40px 80px -24px rgba(0,0,0,0.7),
+    0 0 120px -60px var(--accent-dim);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.terminal__chrome {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.terminal__chrome-dots {
+  display: flex;
+  gap: 6px;
+}
+.terminal__chrome-dots span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--border);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.terminal__chrome-title {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+
+.terminal__chrome-status {
+  font-size: 11px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  min-width: 62px;
+  text-align: right;
+}
+
+.terminal__output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px 8px;
+  font-size: 14px;
+  line-height: var(--line);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.terminal__output::-webkit-scrollbar { width: 8px; }
+.terminal__output::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+.terminal__output::-webkit-scrollbar-track { background: transparent; }
+
+.terminal__input-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.terminal__prompt {
+  color: var(--accent);
+  font-size: 14px;
+  white-space: nowrap;
+  user-select: none;
+  text-shadow: 0 0 18px rgba(84,135,163,0.25);
+}
+
+/* Wraps the mirror text + cursor + the real (invisible) input.
+   The mirror/cursor render the visible state; the input just captures
+   focus and keystrokes, so the cursor always tracks the last character. */
+.terminal__inputwrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.terminal__mirror {
+  color: var(--ink-0);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  white-space: pre;
+}
+
+.terminal__cursor {
+  width: 8px;
+  height: 16px;
+  margin-left: 1px;
+  background: var(--ink-0);
+  flex-shrink: 0;
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.terminal__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   Output lines
+   ========================================================================== */
+
+.line {
+  white-space: pre-wrap;
+  word-break: break-word;
+  opacity: 0;
+  animation: rise 220ms ease forwards;
+  margin: 0 0 2px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.line--echo {
+  color: var(--ink-1);
+}
+.line--echo .echo-prompt {
+  color: var(--accent);
+}
+
+.line--out   { color: var(--ink-0); }
+.line--dim   { color: var(--ink-2); }
+.line--ok    { color: var(--ok); }
+.line--warn  { color: var(--warn); }
+.line--err   { color: var(--err); }
+.line--accent{
+  color: var(--accent);
+  text-shadow: 0 0 18px rgba(84,135,163,0.25);
+}
+
+/* Boot signature: the 'V' monogram wipes in top-to-bottom, then
+   settles with a single soft glow pulse. One deliberate motion. */
+.line.line--mark {
+  color: var(--accent);
+  font-weight: 700;
+  line-height: 1.15;
+  opacity: 1;
+  animation:
+    mark-reveal 640ms cubic-bezier(.16,.84,.44,1) both,
+    mark-pulse 1100ms ease 640ms 1;
+}
+
+@keyframes mark-reveal {
+  from { clip-path: inset(0 0 100% 0); }
+  to   { clip-path: inset(0 0 0% 0); }
+}
+
+@keyframes mark-pulse {
+  0%   { text-shadow: 0 0 0 rgba(84,135,163,0); }
+  45%  { text-shadow: 0 0 28px rgba(84,135,163,0.5); }
+  100% { text-shadow: 0 0 16px rgba(84,135,163,0.18); }
+}
+
+.block { margin: 4px 0 14px; }
+
+.hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 10px 0;
+}
+
+a.term-link {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent-dim);
+  transition: color 150ms ease, border-color 150ms ease;
+}
+a.term-link:hover,
+a.term-link:focus-visible {
+  color: var(--ink-0);
+  border-bottom-color: var(--ink-0);
+}
+
+/* simple two-column key: value table used by skills/status/projects */
+.kv {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  column-gap: 12px;
+  row-gap: 3px;
+}
+.kv dt { color: var(--ink-2); }
+.kv dd { margin: 0; color: var(--ink-0); }
+
+.bar-track { color: var(--ink-2); }
+.bar-fill  { color: var(--accent); }
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.terminal__footer {
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--ink-2);
+  z-index: 1;
+}
+.terminal__footer code {
+  color: var(--ink-1);
+  background: var(--bg-2);
+  padding: 1px 6px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+}
+
+/* ==========================================================================
+   Accessibility & responsiveness
+   ========================================================================== */
+
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line { animation: none; opacity: 1; }
+  .line.line--mark { animation: none; clip-path: none; text-shadow: none; }
+  .terminal__cursor { animation: none; opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  body { padding: 0; }
+  .terminal {
+    max-width: 100%;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+  .terminal__output { font-size: 13px; padding: 14px; }
+  .terminal__input-line { padding: 10px 14px 14px; }
+  .kv { grid-template-columns: 130px 1fr; }
+}
