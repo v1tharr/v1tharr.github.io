@@ -16,7 +16,7 @@ window.Term.PROJECTS = [
       'via platformdirs, cross-platform packaging.'
   },
   {
-    id: 'asiec-portal',
+    id: 'edu-portal',
     name: 'edu web portal + student personal account system',
     role: 'Lead Developer / DevOps',
     stack: ['PHP', 'jQuery', 'LDAP/AD', 'Docker', 'Nginx Proxy Manager'],
@@ -28,7 +28,7 @@ window.Term.PROJECTS = [
   },
   {
     id: 'ansible-awx',
-    name: 'asiec-ansible-awx',
+    name: 'edu-ansible-awx',
     role: 'Author / Maintainer',
     stack: ['Ansible', 'AWX', 'Vault', 'GLPI dynamic inventory'],
     repo: null,
