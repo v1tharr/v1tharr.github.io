@@ -17,7 +17,7 @@ window.Term.PROJECTS = [
   },
   {
     id: 'asiec-portal',
-    name: 'services.asiec.ru + lk.asiec.ru',
+    name: 'edu web portal + student personal account system',
     role: 'Lead Developer / DevOps',
     stack: ['PHP', 'jQuery', 'LDAP/AD', 'Docker', 'Nginx Proxy Manager'],
     repo: null,

@@ -155,7 +155,7 @@ class CommandHandler {
       v: {
         summary: 'redraw the mark',
         usage: 'v',
-        hidden: true,
+        hidden: false,
         handler: () => ({ action: 'print', lines: [{ text: MARK, cls: 'mark' }] }),
       },
     };
