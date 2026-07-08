@@ -2,7 +2,7 @@
 window.Term = window.Term || {};
 
 window.Term.ABOUT_LINES = [
-  'DevOps / Linux administrator / Python backend developer.',
+  'DevOps Engineer/ Infrastructure Engineer / Linux administrator / .',
   '',
   'Operates Linux server fleets and Docker-based infrastructure:',
   'reverse proxying, container deployment, backup and recovery,',
