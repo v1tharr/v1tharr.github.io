@@ -32,7 +32,7 @@
   <form id="inputLine" class="terminal__input-line" autocomplete="off">
     <label for="commandInput" class="terminal__prompt" id="promptLabel">vitharr@tech:~#</label>
     <div class="terminal__inputwrap">
-      <span id="inputMirror" class="terminal__mirror"></span><span class="terminal__cursor" id="cursor"></span>
+      <span id="mirrorBefore" class="terminal__mirror"></span><span class="terminal__cursor" id="cursor"></span><span id="mirrorAfter" class="terminal__mirror"></span>
       <input
         id="commandInput"
         class="terminal__input"
@@ -53,6 +53,7 @@
   <span>type <code>help</code> to begin</span>
 </footer>
 
+<script src="js/data/mark.js"></script>
 <script src="js/data/projects.js"></script>
 <script src="js/data/skills.js"></script>
 <script src="js/data/about.js"></script>

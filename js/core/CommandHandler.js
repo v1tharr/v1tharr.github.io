@@ -4,10 +4,12 @@
 // answered locally (Stage 1) or will eventually hit a Flask endpoint
 // (Stage 2). TerminalCore never knows the difference.
 //
-// Stage 2 plan: commands flagged `remote: true` currently return a stub.
-// Swapping them for real behaviour means replacing the body of
-// `runRemote()` with a single fetch('/api/command', { ... }) call —
-// no change required in TerminalCore or in index.html.
+// Stage 2 plan (not wired up yet, no commands use it): give a command
+// entry `remote: true` and it will route through runRemote() below
+// instead of a local handler. Swapping the stub in runRemote() for a
+// real fetch('/api/command', { ... }) call is the only change needed —
+// TerminalCore and index.html stay untouched. Left dormant on purpose:
+// no backend is hosted yet, so nothing is registered with this flag.
 
 // Reads shared data from window.Term, populated by the scripts in
 // js/data/*.js, which must load before this file (see index.html).
@@ -18,8 +20,22 @@ const SKILL_GROUPS = window.Term.SKILL_GROUPS;
 const ABOUT_LINES = window.Term.ABOUT_LINES;
 const CONTACTS = window.Term.CONTACTS;
 const ELSEWHERE = window.Term.ELSEWHERE;
+const MARK = window.Term.MARK;
 
 const L = (text, cls = 'out') => ({ text, cls });
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/** A line whose visible text is prefixed with plain text and ends with a
+ *  real, styled, clickable link (uses the .term-link CSS class). */
+function LH(prefix, linkText, href, cls = 'out') {
+  return {
+    html: `${esc(prefix)}<a class="term-link" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(linkText)}</a>`,
+    cls,
+  };
+}
 
 class CommandHandler {
   constructor() {
@@ -101,6 +117,11 @@ class CommandHandler {
         usage: 'elsewhere',
         handler: () => this.cmdElsewhere(),
       },
+      repo: {
+        summary: 'source of this site',
+        usage: 'repo',
+        handler: () => this.cmdRepo(),
+      },
       skills: {
         summary: 'print technical proficiency table',
         usage: 'skills',
@@ -131,9 +152,12 @@ class CommandHandler {
         hidden: true,
         handler: (args) => this.cmdSudo(args),
       },
-      ping: { summary: 'live latency probe', usage: 'ping <host>', remote: true },
-      htop: { summary: 'live process monitor', usage: 'htop', remote: true },
-      logs: { summary: 'stream container logs', usage: 'logs <container>', remote: true },
+      v: {
+        summary: 'redraw the mark',
+        usage: 'v',
+        hidden: true,
+        handler: () => ({ action: 'print', lines: [{ text: MARK, cls: 'mark' }] }),
+      },
     };
   }
 
@@ -180,10 +204,9 @@ class CommandHandler {
       lines.push(L(`[${String(i + 1).padStart(2, '0')}] ${p.name}`, 'accent'));
       lines.push(L(`     role  : ${p.role}`, 'dim'));
       lines.push(
-        L(
-          `     repo  : ${p.repo ?? 'private / internal'}`,
-          p.repo ? 'out' : 'dim'
-        )
+        p.repo
+          ? LH('     repo  : ', p.repo, p.repo)
+          : L('     repo  : private / internal', 'dim')
       );
       lines.push(L(''));
     });
@@ -197,7 +220,7 @@ class CommandHandler {
       L('─'.repeat(Math.min(p.name.length, 48)), 'dim'),
       L(`role   : ${p.role}`),
       L(`stack  : ${p.stack.join(', ')}`),
-      L(`repo   : ${p.repo ?? 'private / internal'}`, p.repo ? 'out' : 'dim'),
+      p.repo ? LH('repo   : ', p.repo, p.repo) : L('repo   : private / internal', 'dim'),
       L(''),
       ...wrap(p.desc, 68).map((t) => L(t)),
     ];
@@ -206,7 +229,7 @@ class CommandHandler {
   cmdContacts() {
     const lines = [L('CONTACTS', 'dim'), L('')];
     CONTACTS.forEach((c) => {
-      lines.push(L(`${c.label.padEnd(10)}${c.value}`));
+      lines.push(LH(c.label.padEnd(10), c.value, c.href));
     });
     return { action: 'print', lines };
   }
@@ -215,10 +238,18 @@ class CommandHandler {
     const lines = [L('ELSEWHERE', 'dim'), L('')];
     ELSEWHERE.forEach((c) => {
       lines.push(L(`${c.label}  ·  ${c.desc}`, 'accent'));
-      lines.push(L(`  ${c.value}`, 'dim'));
+      lines.push(LH('  ', c.value, c.href, 'dim'));
       lines.push(L(''));
     });
     return { action: 'print', lines };
+  }
+
+  cmdRepo() {
+    const url = 'https://github.com/v1tharr/v1tharr.github.io';
+    return {
+      action: 'print',
+      lines: [LH('source: ', url, url)],
+    };
   }
 
   cmdSkills() {

@@ -237,8 +237,10 @@ body {
   text-shadow: 0 0 18px rgba(84,135,163,0.25);
 }
 
-/* Boot signature: the 'V' monogram wipes in top-to-bottom, then
-   settles with a single soft glow pulse. One deliberate motion. */
+/* Boot signature: the 'V' monogram wipes in top-to-bottom, gets one
+   brighter flash, then breathes quietly, indefinitely. Reveal uses
+   clip-path, the flash uses filter, the breathing uses text-shadow —
+   three different properties so the animations never fight each other. */
 .line.line--mark {
   color: var(--accent);
   font-weight: 700;
@@ -246,7 +248,8 @@ body {
   opacity: 1;
   animation:
     mark-reveal 640ms cubic-bezier(.16,.84,.44,1) both,
-    mark-pulse 1100ms ease 640ms 1;
+    mark-pop 900ms ease 640ms 1,
+    mark-breathe 5s ease-in-out 900ms infinite;
 }
 
 @keyframes mark-reveal {
@@ -254,10 +257,15 @@ body {
   to   { clip-path: inset(0 0 0% 0); }
 }
 
-@keyframes mark-pulse {
-  0%   { text-shadow: 0 0 0 rgba(84,135,163,0); }
-  45%  { text-shadow: 0 0 28px rgba(84,135,163,0.5); }
-  100% { text-shadow: 0 0 16px rgba(84,135,163,0.18); }
+@keyframes mark-pop {
+  0%   { filter: brightness(1); }
+  40%  { filter: brightness(1.7); }
+  100% { filter: brightness(1); }
+}
+
+@keyframes mark-breathe {
+  0%, 100% { text-shadow: 0 0 14px rgba(84,135,163,0.16); }
+  50%      { text-shadow: 0 0 24px rgba(84,135,163,0.4); }
 }
 
 .block { margin: 4px 0 14px; }

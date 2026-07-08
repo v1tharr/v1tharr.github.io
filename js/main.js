@@ -4,21 +4,18 @@
 (function () {
   const outputEl = document.getElementById('output');
   const inputEl = document.getElementById('commandInput');
-  const mirrorEl = document.getElementById('inputMirror');
+  const mirrorBeforeEl = document.getElementById('mirrorBefore');
+  const mirrorAfterEl = document.getElementById('mirrorAfter');
   const cursorEl = document.getElementById('cursor');
   const promptEl = document.getElementById('promptLabel');
   const clockEl = document.getElementById('clockStatus');
 
   // The one deliberate signature moment: a geometric 'V' monogram —
   // quiet, sharp-edged, in the accent color. Reveals top-to-bottom once,
-  // then the boot log follows. No literal name spam, no imagery.
-  const MARK = [
-    '██╗   ██╗',
-    '██║   ██║',
-    '╚██╗ ██╔╝',
-    ' ╚████╔╝ ',
-    '  ╚═══╝  ',
-  ].join('\n');
+  // then breathes quietly (see .line--mark in style.css). Also callable
+  // any time via the 'v' command, since 'clear' wipes it like anything
+  // else in the output.
+  const MARK = Term.MARK;
 
   // Dry, technical boot log. No dramatics.
   const BOOT_SEQUENCE = [
@@ -51,7 +48,8 @@
   const terminal = new Term.TerminalCore({
     outputEl,
     inputEl,
-    mirrorEl,
+    mirrorBeforeEl,
+    mirrorAfterEl,
     cursorEl,
     promptEl,
     clockEl,

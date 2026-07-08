@@ -5,18 +5,20 @@
 // commandHandler.run(text) and renders whatever Promise resolves to.
 //
 // Input trick: the real <input> is invisible (opacity: 0) but still
-// receives focus, keystrokes, and paste. A mirror <span> shows the same
-// text styled like terminal output, immediately followed by the blinking
-// cursor block — so the cursor always sits right after the last typed
-// character instead of being pinned to the edge of the line.
+// receives focus, keystrokes, and caret movement. Two mirror <span>s
+// (text before/after the caret) plus a cursor block between them
+// reproduce the visible state — so the cursor always sits exactly
+// where the real caret is, including after arrow-key navigation,
+// clicks, Home/End, etc., not just at the end of the text.
 
 window.Term = window.Term || {};
 
 class TerminalCore {
-  constructor({ outputEl, inputEl, mirrorEl, cursorEl, promptEl, clockEl, commandHandler, promptPath = '~' }) {
+  constructor({ outputEl, inputEl, mirrorBeforeEl, mirrorAfterEl, cursorEl, promptEl, clockEl, commandHandler, promptPath = '~' }) {
     this.outputEl = outputEl;
     this.inputEl = inputEl;
-    this.mirrorEl = mirrorEl;
+    this.mirrorBeforeEl = mirrorBeforeEl;
+    this.mirrorAfterEl = mirrorAfterEl;
     this.cursorEl = cursorEl;
     this.promptEl = promptEl;
     this.clockEl = clockEl;
@@ -40,6 +42,12 @@ class TerminalCore {
     });
 
     this.inputEl.addEventListener('input', () => this.syncMirror());
+    // keyup (not keydown): the browser applies caret movement for
+    // ArrowLeft/Right/Home/End as the *default* action, which runs
+    // after our keydown handler — so keydown would read the stale
+    // caret position. keyup fires once that default action is done.
+    this.inputEl.addEventListener('keyup', () => this.syncMirror());
+    this.inputEl.addEventListener('click', () => this.syncMirror());
 
     this.inputEl.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') {
@@ -60,7 +68,10 @@ class TerminalCore {
   }
 
   syncMirror() {
-    this.mirrorEl.textContent = this.inputEl.value;
+    const val = this.inputEl.value;
+    const caret = this.inputEl.selectionStart ?? val.length;
+    this.mirrorBeforeEl.textContent = val.slice(0, caret);
+    this.mirrorAfterEl.textContent = val.slice(caret);
   }
 
   setPromptPath(path) {
@@ -126,10 +137,14 @@ class TerminalCore {
   }
 
   printLines(lines) {
-    for (const { text, cls = 'out' } of lines) {
+    for (const line of lines) {
       const div = document.createElement('div');
-      div.className = `line line--${cls}`;
-      div.textContent = text;
+      div.className = `line line--${line.cls || 'out'}`;
+      if (line.html) {
+        div.innerHTML = line.html;
+      } else {
+        div.textContent = line.text;
+      }
       this.outputEl.appendChild(div);
     }
     this.scrollToBottom();
@@ -159,9 +174,12 @@ class TerminalCore {
       .listForHelp()
       .map((c) => c.key)
       .filter((k) => k.startsWith(val));
+
     if (candidates.length === 1) {
       this.inputEl.value = candidates[0] + ' ';
       this.syncMirror();
+    } else if (candidates.length > 1) {
+      this.printLines([{ text: candidates.join('   '), cls: 'dim' }]);
     }
   }
 
